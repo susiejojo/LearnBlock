@@ -7,7 +7,7 @@ from PIL import Image
 from pyunpack import Archive
 from pyparsing import ParseException
 from multiprocessing import Process
-
+import learnbot_dsl.learnbotCode.error_loc as error_loc
 from learnbot_dsl.learnbotCode.AbstractBlock import *
 from learnbot_dsl.learnbotCode.Button import *
 from learnbot_dsl.learnbotCode.Scene import *
@@ -287,6 +287,7 @@ class LearnBlock(QtWidgets.QMainWindow):
         self.view.show()
         self.view.setZoom(False)
 
+        #self.ui.actionViewError.triggered.connect(self.scene.ErrorBlock)
         self.ui.actionDuplicate.triggered.connect(self.scene.duplicateBlock)
         self.ui.actionEdit.triggered.connect(self.scene.editBlock)
         self.ui.actionDelete.triggered.connect(self.scene.deleteBlock)
@@ -549,11 +550,14 @@ class LearnBlock(QtWidgets.QMainWindow):
         font.setFamily('Courier')
         font.setFixedPitch(True)
         font.setPointSize(self.ui.spinBoxLeterSize.value())
+        #font.setUnderline(True)
+        #print ("hi")
         self.ui.textCode.setFont(font)
         self.ui.textCode.setTextColor(QtCore.Qt.white)
         self.ui.textCode.setCursorWidth(2)
+        #self.ui.textCode.setForeGroundColor(QtCore.Qt.yellow)
         p = self.ui.textCode.palette()
-        p.setColor(self.ui.textCode.viewport().backgroundRole(), QtGui.QColor(51, 51, 51, 255))
+        p.setColor(self.ui.textCode.viewport().backgroundRole(), QtGui.QColor(151, 51, 51, 255))
         self.ui.textCode.setPalette(p)
 
     def loadConfigFile(self):
@@ -824,7 +828,16 @@ class LearnBlock(QtWidgets.QMainWindow):
                 text += name + " = None\n"
         blocks = self.scene.getListInstructions()
         code = self.parserBlocks(blocks, self.toLBotPy)
+        list = self.scene.getListInstructions()
+        # print (__listVariables(tree))
+        b_list = self.scene.dicBlockItem
+        for i in b_list.values():
+            if (i.name=="if"):
+                print ("got if at: ",i.pos," with connections: ",i.connections," id: ",str(i.id))
+        print (error_loc.locate(code))
+        #print ("code: ",code)
         self.ui.textCode.clear()
+        self.updateTextCodeStyle()
         self.ui.textCode.setText(text + code)
 
     def checkConnectionToBot(self, showWarning=False):
@@ -921,7 +934,7 @@ class LearnBlock(QtWidgets.QMainWindow):
                 msgBox = QtWidgets.QMessageBox()
                 msgBox.setWindowTitle(self.tr("Warning"))
                 msgBox.setIcon(QtWidgets.QMessageBox.Warning)
-                msgBox.setText(self.tr("Your code is empty or is not correct"))
+                msgBox.setText(self.tr("Your code is empty or is not correct\n "+error_loc.print_error()))
                 msgBox.setStandardButtons(QtWidgets.QMessageBox.Ok)
                 msgBox.setDefaultButton(QtWidgets.QMessageBox.Ok)
                 msgBox.exec_()
@@ -1304,6 +1317,7 @@ class LearnBlock(QtWidgets.QMainWindow):
                     dictBlock = d[0]
                     for block in dictBlock.values():
                         block.file = os.path.join(pathImgBlocks, os.path.basename(block.file))
+                        #print (block.name)
                     # Load Whens
                     for name, configFile in d[1]:
                         self.addButtonsWhens(configFile, name)
@@ -1560,13 +1574,16 @@ class LearnBlock(QtWidgets.QMainWindow):
             text += self.parserWhenBlocks(blocks, function)
         else:
             text += self.parserOtherBlocks(blocks, function)
+        print ("parserBlocks: ",text)
         return text
 
     def parserUserFuntions(self, blocks, function):
         text = ""
         for b in [block for block in blocks if block[1]["TYPE"] is USERFUNCTION]:
+            #print (b)
             text += "def " + function(b, 1)
             text += "\nend\n\n"
+        #print ("parserUserFuntions: ",text)
         return text
 
     def parserWhenBlocks(self, blocks, function):
@@ -1624,7 +1641,7 @@ class LearnBlock(QtWidgets.QMainWindow):
             text += " " + self.toLBotPy(inst[1]["RIGHT"])
         if inst[1]["BOTTOMIN"] is not None:
             text += ":\n" + "\t" * ntab + self.toLBotPy(inst[1]["BOTTOMIN"], ntab + 1)
-        if inst[0] in ["while", "while True"]:
+        if inst[0] in ["while", "while True","for"]:
             text += "\n\t" * (ntab - 1) + "end"
         if inst[0] == "else" or (inst[0] in ["if", "elif"] and (inst[1]["BOTTOM"] is None or (
                 inst[1]["BOTTOM"] is not None and inst[1]["BOTTOM"][0] not in ["elif", "else"]))):

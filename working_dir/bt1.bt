@@ -1,0 +1,16 @@
+n = None
+m = None
+
+
+main:
+	function.look_floor()
+	m = 10
+	n = m
+	for n:
+		if function.is_left_black_line():
+			function.move_left()
+			function.expressJoy()
+		end
+	end
+end
+

@@ -6,7 +6,7 @@ from learnbot_dsl.blocksConfig.blocks import pathBlocks as pathImgBlocks
 
 pathConfig = os.path.dirname(os.path.realpath(__file__))
 
-renamedB = {"blockVertical":"block1", "blockBoth":"block3", "blockLeft":"block4"}
+renamedB = {"blockVertical":"block1", "blockBoth":"block3", "blockLeft":"block4","blockGrp":"block6"}
 
 
 def reload_functions(selected_path=None):
@@ -33,7 +33,7 @@ def reload_functions(selected_path=None):
                     blocks = json.loads(text)
                 else:
                     blocks += json.loads(text)
-
+    #print (blocks)
     return blocks
 
 def renameBlock(name):
@@ -51,6 +51,7 @@ if __name__ == '__main__':
     blocks = reload_functions()
     from learnbot_dsl.functions import getFuntions
     functions = getFuntions()
+    print (functions)
     nameconfigBlocks = [x["name"] for x in blocks]
     for x in nameconfigBlocks:
         if x not in functions:

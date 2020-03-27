@@ -89,15 +89,18 @@ class MyScene(QtWidgets.QGraphicsScene):
 
     def setBlockDict(self, dict):
         self.clean()
+        for block in dict.values():
+        #block.file = os.path.join(pathImgBlocks, os.path.basename(block.file))
+            print (block.name)
         for id in dict:
             blockItem = dict[id]
             visualItem = VisualBlock(blockItem, self.view, self)
             super(MyScene, self).addItem(visualItem)
             self.dicBlockItem[blockItem.id] = blockItem
             self.dictVisualItem[blockItem.id] = visualItem
+
             if self.nextIdItem <= int(id):
                 self.nextIdItem = int(id) + 1
-
         while self.shouldSave is True:
             self.shouldSave = False
             for id in self.dictVisualItem:
@@ -218,6 +221,7 @@ class MyScene(QtWidgets.QGraphicsScene):
         for item in [self.getVisualItem(id) for id in self.dictVisualItem if self.getVisualItem(id).isBlockDef()]:
             inst = item.getInstructions()
             list.append(inst)
+        #print (list[0])
         return list
 
     def mouseMoveEvent(self, event):
