@@ -455,6 +455,8 @@ def __processWHILE(line, text="", index=0):
 
 
 def __processFOR(line, text="", index=0):
+    text +="\n" + "<TABHERE>" * index + "if type("+line.times+") == type(1):"
+    index +=1
     text += "\n" + "<TABHERE>" * index + "for i in range "
     #print ("I have entered For")
     #print (int(line.times))
